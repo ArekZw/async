@@ -46,7 +46,7 @@ var DOM_IS_READY;
 var DOMREADY_QUEUE = [];
 
 function DOMREADY_CHECK(e) {
-    if (e || DOM_IS_READY || doc.readyState === "complete") {
+    if (e || DOM_IS_READY || ["complete", "loaded", "interactive"].indexOf(doc.readyState) !== -1) {
         DOM_IS_READY = 1;
         var handler = DOMREADY_QUEUE.shift();
         while (handler) {
@@ -57,6 +57,7 @@ function DOMREADY_CHECK(e) {
 }
 
 function DOMREADY(handler) {
+    DOMREADY_CHECK();
     (DOM_IS_READY) ? handler(): DOMREADY_QUEUE.push(handler);
 };
 ADD_EVENT(VAR_DOMCONTENTLOADED, function() {
@@ -82,8 +83,9 @@ TIMING = function(args, callback) {
     if (DEBUG) {
         var config = OBJECT(args[0], VAR_TYPE),
             debug_vars = args[1],
-            src = args[2];
-        var log_args = debug_vars.slice(0);
+            src = args[2],
+            debug_data = {},
+            log_args = debug_vars.slice(0);
         log_args[0] += '.start';
     } else if (API) {
         var config = OBJECT(args[0], VAR_TYPE),
@@ -96,11 +98,16 @@ TIMING = function(args, callback) {
     var type = (config) ? config[VAR_TYPE] : 0;
     var timer_set;
 
+    if (DEBUG) {
+        if (type) {
+            debug_data.type = VAR(type);
+        }
+    }
+
     // custom trigger method
     if (type === VAR_METHOD) {
 
         if (DEBUG) {
-            var debug_data = {};
             debug_data.method = config[VAR_METHOD];
             log_args.push(debug_data);
             APPLY(CONSOLE_LOG, log_args);
@@ -141,7 +148,6 @@ TIMING = function(args, callback) {
     if (type === VAR_REQUESTANIMATIONFRAME && _requestAnimationFrame) {
 
         if (DEBUG) {
-            var debug_data = {};
             debug_data.frame = config[VAR_FRAME] || 1;
             log_args.push(debug_data);
             APPLY(CONSOLE_LOG, log_args);
@@ -157,7 +163,6 @@ TIMING = function(args, callback) {
 
         if (DEBUG) {
             if (timeout) {
-                var debug_data = {};
                 debug_data.timeout = timeout;
                 log_args.push(debug_data);
             }
@@ -174,6 +179,7 @@ TIMING = function(args, callback) {
     if (type === VAR_DOMREADY) {
 
         if (DEBUG) {
+            log_args.push(debug_data);
             APPLY(CONSOLE_LOG, log_args);
         }
 
@@ -185,7 +191,6 @@ TIMING = function(args, callback) {
     if (type === VAR_SETTIMEOUT) {
 
         if (DEBUG) {
-            var debug_data = {};
             debug_data.timeout = config[VAR_TIMEOUT];
             log_args.push(debug_data);
             APPLY(CONSOLE_LOG, log_args);
@@ -199,7 +204,6 @@ TIMING = function(args, callback) {
     if (type === VAR_MEDIA && RESPONSIVE) {
 
         if (DEBUG) {
-            var debug_data = {};
             debug_data.media = config[VAR_MEDIA];
             log_args.push(debug_data);
             APPLY(CONSOLE_LOG, log_args);
@@ -217,7 +221,6 @@ TIMING = function(args, callback) {
     if (type === VAR_INVIEW && INVIEW) {
 
         if (DEBUG) {
-            var debug_data = {};
             debug_data.selector = config[VAR_SELECTOR];
             debug_data.threshold = config[VAR_THRESHOLD];
             debug_data.offset = config[VAR_OFFSET];
@@ -226,6 +229,20 @@ TIMING = function(args, callback) {
         }
 
         INVIEW(config[VAR_SELECTOR], config[VAR_THRESHOLD], config[VAR_OFFSET], (DEBUG) ? TIMING_DEBUG_CALLBACK('inview', callback, debug_vars, debug_data) : callback);
+        timer_set = 1;
+    }
+
+    // inview / element visibility
+    if (type === VAR_LAZY && LAZY) {
+
+        if (DEBUG) {
+            debug_data.config = config[VAR_CONFIG];
+            debug_data.ref = config[VAR_REF] || null;
+            log_args.push(debug_data);
+            APPLY(CONSOLE_LOG, log_args);
+        }
+
+        LAZY(config[VAR_CONFIG], config[VAR_REF], (DEBUG) ? TIMING_DEBUG_CALLBACK('lazy', callback, debug_vars, debug_data) : callback);
         timer_set = 1;
     }
 

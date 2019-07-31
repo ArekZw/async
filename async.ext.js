@@ -11,6 +11,11 @@ window.$async.then = function() {};
 window.$async.time = function() {};
 window.perfMark = function() {};
 
+
+var $lazy = window.$lazy = function(entries) {
+    entries[0].isIntersecting = false;
+}
+
 window.$async.js;
 window.$async.js.load = function() {};
 window.$async.js.on = function() {};
@@ -67,7 +72,9 @@ var debug_data = {
     dependencies: '',
     'rewritten': 1,
     selector: '',
-    method: ''
+    method: '',
+    config: '',
+    ref: ''
 };
 document.createEvent = function() {
     return {
